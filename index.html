@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tic-Tac-Toe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ---- tokens ---- */
+:root{
+  --paper:#EEF2F6;
+  --rule:#41618f;
+  --ink:#1f2a44;
+  --margin:#d9665a;
+  --x-ink:#2255a4;
+  --o-ink:#c1432e;
+  --highlight: rgba(255,214,90,0.55);
+  --paper-card:#F7FAFD;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--paper);
+  font-family:'JetBrains Mono', monospace;
+  color:var(--ink);
+  display:flex;
+  justify-content:center;
+  padding:24px 12px 60px;
+}
+
+/* faint paper grain */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events:none;
+  mix-blend-mode:multiply;
+}
+
+.page{
+  position:relative;
+  width:100%;
+  max-width:420px;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 30px, rgba(65,97,143,0.12) 30px 31px),
+    var(--paper-card);
+  border-radius:4px;
+  box-shadow:0 18px 38px -18px rgba(31,42,68,0.35), 0 2px 0 rgba(31,42,68,0.06);
+  padding:34px 22px 30px 58px;
+  overflow:hidden;
+}
+
+.spiral{
+  position:absolute; left:16px; top:0; bottom:0; width:10px;
+  background-image: radial-gradient(circle, #c9d4e3 3px, transparent 3.6px);
+  background-size: 10px 34px;
+  background-repeat: repeat-y;
+  background-position: 0 14px;
+}
+.margin-line{
+  position:absolute; left:40px; top:0; bottom:0; width:2px;
+  background: var(--margin);
+  opacity:0.55;
+}
+
+header{ margin-bottom: 14px; }
+.eyebrow{
+  margin:0 0 2px;
+  font-size:11px;
+  letter-spacing:0.12em;
+  color:var(--margin);
+  font-weight:600;
+}
+h1{
+  font-family:'Caveat', cursive;
+  font-size:44px;
+  line-height:1;
+  margin:0 0 4px;
+  color:var(--ink);
+}
+h1 .crossout{
+  position:relative;
+  color:#8a94a8;
+}
+h1 .crossout::after{
+  content:"";
+  position:absolute; left:-2%; right:-2%; top:52%;
+  height:3px; background:var(--margin);
+  transform: rotate(-2deg);
+}
+.byline{
+  margin:0;
+  font-size:11.5px;
+  color:#5b6781;
+  font-style:italic;
+}
+
+.mode-row{
+  margin:16px 0 10px;
+  font-size:13px;
+}
+.mode-row label{ display:flex; align-items:center; gap:8px; cursor:pointer; }
+.mode-row input{ width:15px; height:15px; accent-color:var(--ink); cursor:pointer; }
+
+.status{
+  font-family:'Caveat', cursive;
+  font-size:22px;
+  color:var(--margin);
+  margin:6px 0 16px;
+  min-height:28px;
+  transform: rotate(-1deg);
+}
+
+.board-wrap{
+  position:relative;
+  width:100%;
+  max-width:300px;
+  aspect-ratio:1/1;
+  margin:0 auto 18px;
+}
+.grid-svg, .winline-svg{
+  position:absolute; inset:0; width:100%; height:100%;
+}
+.winline-svg{ pointer-events:none; }
+
+.cells{
+  position:absolute; inset:0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+}
+.cell{
+  background:transparent;
+  border:none;
+  padding:8%;
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cell:focus-visible{
+  outline:2px solid var(--margin);
+  outline-offset:-4px;
+  border-radius:6px;
+}
+.cell.win{
+  background:var(--highlight);
+  border-radius:6px;
+}
+.cell svg{ width:100%; height:100%; overflow:visible; }
+.cell:disabled{ cursor:default; }
+
+.score-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin:6px 0 20px;
+  padding-top:14px;
+  border-top:1px dashed #c4cee0;
+}
+.score{ flex:1; text-align:center; }
+.score-label{
+  display:block;
+  font-size:11px;
+  letter-spacing:0.08em;
+  color:#5b6781;
+  margin-bottom:4px;
+}
+.tally{ height:22px; width:100%; }
+
+.actions{ display:flex; gap:10px; margin-bottom:20px; }
+button.action{
+  flex:1;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12.5px;
+  padding:10px 8px;
+  background:var(--paper-card);
+  border:1.5px solid var(--ink);
+  border-radius:3px;
+  cursor:pointer;
+  color:var(--ink);
+  box-shadow:2px 2px 0 rgba(31,42,68,0.15);
+}
+button.action:active{ transform: translate(1px,1px); box-shadow:1px 1px 0 rgba(31,42,68,0.15); }
+@media (prefers-reduced-motion: no-preference){
+  button.action{ transition: transform .08s ease, box-shadow .08s ease; }
+}
+
+.footnote{
+  font-family:'Caveat', cursive;
+  font-size:15px;
+  color:#5b6781;
+  transform: rotate(-1deg);
+  margin:0;
+}
+
+@media (max-width: 380px){
+  .page{ padding:28px 16px 26px 42px; }
+  .spiral, .margin-line{ display:none; }
+}
+
+</style>
+</head>
+<body>
+  <main class="page">
+    <div class="spiral"></div>
+    <div class="margin-line"></div>
+
+    <header>
+      <h1>Tic-Tac-Toe Web App</h1>
+      <p class="byline">Prodigy InfoTech · Khushi</p>
+    </header>
+
+    <div class="mode-row">
+      <label>
+        <input type="checkbox" id="vsBot" />
+        play against the computer
+      </label>
+    </div>
+
+    <p class="status" id="status">X's turn — go ahead</p>
+
+    <div class="board-wrap">
+      <svg class="grid-svg" viewBox="0 0 300 300">
+        <path d="M 100 6 Q 106 150 97 294" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 102 8 Q 96 150 103 292" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 200 5 Q 193 150 207 296" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 198 7 Q 204 150 203 293" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 6 100 Q 150 107 295 96" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 8 103 Q 150 95 293 103" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 5 200 Q 150 193 297 207" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 7 198 Q 150 205 294 203" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+      <div class="cells" id="cells"></div>
+      <svg class="winline-svg" id="winLine" viewBox="0 0 300 300"></svg>
+    </div>
+
+    <div class="score-row">
+      <div class="score">
+        <span class="score-label">X</span>
+        <svg class="tally" id="tallyX" viewBox="0 0 60 24"></svg>
+      </div>
+      <div class="score">
+        <span class="score-label">O</span>
+        <svg class="tally" id="tallyO" viewBox="0 0 60 24"></svg>
+      </div>
+      <div class="score">
+        <span class="score-label">draws</span>
+        <svg class="tally" id="tallyD" viewBox="0 0 60 24"></svg>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="action" id="newRound">new round</button>
+      <button class="action" id="resetMatch">reset match</button>
+    </div>
+
+  </main>
+
+<script>
+(function(){
+  // ----- state -----
+  var board = Array(9).fill(null);
+  var turn = 'X';
+  var over = false;
+  var scores = { X:0, O:0, D:0 };
+  var cellsEl = document.getElementById('cells');
+  var statusEl = document.getElementById('status');
+  var vsBotEl = document.getElementById('vsBot');
+  var winLineSvg = document.getElementById('winLine');
+
+  var WINS = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  var CENTERS = [[50,50],[150,50],[250,50],[50,150],[150,150],[250,150],[50,250],[150,250],[250,250]];
+
+  function rnd(min, max){ return min + Math.random() * (max - min); }
+
+  // build the 9 cell buttons once
+  var cellButtons = [];
+  for (var i = 0; i < 9; i++){
+    var b = document.createElement('button');
+    b.className = 'cell';
+    b.setAttribute('aria-label', 'cell ' + (i+1));
+    b.dataset.idx = i;
+    b.addEventListener('click', onCellClick);
+    cellsEl.appendChild(b);
+    cellButtons.push(b);
+  }
+
+  function onCellClick(e){
+    var idx = +e.currentTarget.dataset.idx;
+    if (over || board[idx]) return;
+    place(idx, turn);
+  }
+
+  function place(idx, player){
+    board[idx] = player;
+    drawMark(cellButtons[idx], player);
+
+    var result = checkWin();
+    if (result){
+      over = true;
+      scores[player]++;
+      highlightWin(result);
+      renderTallies();
+      statusEl.textContent = player + ' wins! nice one.';
+      disableBoard();
+      return;
+    }
+    if (board.every(function(c){ return c; })){
+      over = true;
+      scores.D++;
+      renderTallies();
+      statusEl.textContent = "it's a draw — rematch?";
+      return;
+    }
+
+    turn = (turn === 'X') ? 'O' : 'X';
+    statusEl.textContent = turn + "'s turn";
+
+    if (vsBotEl.checked && turn === 'O' && !over){
+      cellButtons.forEach(function(c){ c.disabled = true; });
+      setTimeout(function(){
+        cellButtons.forEach(function(c, i){ c.disabled = !!board[i]; });
+        botMove();
+      }, 380);
+    }
+  }
+
+  function checkWin(){
+    for (var i = 0; i < WINS.length; i++){
+      var line = WINS[i];
+      if (board[line[0]] && board[line[0]] === board[line[1]] && board[line[1]] === board[line[2]]){
+        return { player: board[line[0]], line: line };
+      }
+    }
+    return null;
+  }
+
+  function disableBoard(){
+    cellButtons.forEach(function(c){ c.disabled = true; });
+  }
+
+  // ----- a simple, not-unbeatable bot -----
+  function botMove(){
+    if (over) return;
+    var move = findWinningMove('O') || findWinningMove('X') || pick([4]) || pick([0,2,6,8]) || pickRandom();
+    if (move != null) place(move, 'O');
+  }
+  function findWinningMove(player){
+    for (var i = 0; i < WINS.length; i++){
+      var line = WINS[i];
+      var vals = line.map(function(idx){ return board[idx]; });
+      var filled = vals.filter(function(v){ return v === player; }).length;
+      var empties = line.filter(function(idx){ return !board[idx]; });
+      if (filled === 2 && empties.length === 1) return empties[0];
+    }
+    return null;
+  }
+  function pick(candidates){
+    var open = candidates.filter(function(i){ return !board[i]; });
+    return open.length ? open[Math.floor(Math.random()*open.length)] : null;
+  }
+  function pickRandom(){
+    var open = board.map(function(v,i){ return v ? null : i; }).filter(function(v){ return v !== null; });
+    return open.length ? open[Math.floor(Math.random()*open.length)] : null;
+  }
+
+  // ----- drawing hand-ish marks -----
+  function drawMark(cellEl, player){
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    if (player === 'X') drawX(svg); else drawO(svg);
+    cellEl.appendChild(svg);
+  }
+
+  function drawX(svg){
+    var jitter = function(){ return rnd(-7,7); };
+    var p1 = path('M ' + (18+jitter()) + ' ' + (18+jitter()) + ' Q ' + (50+jitter()) + ' ' + (50+jitter()) + ' ' + (82+jitter()) + ' ' + (82+jitter()), 'var(--x-ink)');
+    var p2 = path('M ' + (82+jitter()) + ' ' + (18+jitter()) + ' Q ' + (50+jitter()) + ' ' + (50+jitter()) + ' ' + (18+jitter()) + ' ' + (82+jitter()), 'var(--x-ink)');
+    svg.appendChild(p1); svg.appendChild(p2);
+  }
+
+  function drawO(svg){
+    var r = rnd(28,33), cx = 50 + rnd(-3,3), cy = 50 + rnd(-3,3);
+    var k = r * 0.55;
+    var d = 'M ' + (cx-r) + ' ' + cy +
+      ' C ' + (cx-r) + ' ' + (cy-k*1.6) + ' ' + (cx-k*1.4) + ' ' + (cy-r-rnd(-2,2)) + ' ' + cx + ' ' + (cy-r) +
+      ' C ' + (cx+k*1.5) + ' ' + (cy-r) + ' ' + (cx+r+rnd(-2,2)) + ' ' + (cy-k*1.3) + ' ' + (cx+r) + ' ' + cy +
+      ' C ' + (cx+r) + ' ' + (cy+k*1.5) + ' ' + (cx+k*1.3) + ' ' + (cy+r) + ' ' + cx + ' ' + (cy+r) +
+      ' C ' + (cx-k*1.5) + ' ' + (cy+r+rnd(-2,2)) + ' ' + (cx-r) + ' ' + (cy+k*1.4) + ' ' + (cx-r) + ' ' + cy;
+    svg.appendChild(path(d, 'var(--o-ink)'));
+  }
+
+  function path(d, stroke){
+    var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', stroke);
+    p.setAttribute('stroke-width', '8');
+    p.setAttribute('stroke-linecap', 'round');
+    return p;
+  }
+
+  function highlightWin(result){
+    result.line.forEach(function(i){ cellButtons[i].classList.add('win'); });
+    var a = CENTERS[result.line[0]], b = CENTERS[result.line[2]];
+    var mx = (a[0]+b[0])/2 + rnd(-6,6), my = (a[1]+b[1])/2 + rnd(-6,6);
+    var d = 'M ' + a[0] + ' ' + a[1] + ' Q ' + mx + ' ' + my + ' ' + b[0] + ' ' + b[1];
+    var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', 'var(--margin)');
+    p.setAttribute('stroke-width', '6');
+    p.setAttribute('stroke-linecap', 'round');
+    p.setAttribute('opacity', '0.85');
+    winLineSvg.appendChild(p);
+  }
+
+  // ----- tally marks instead of plain numbers -----
+  function renderTallies(){
+    drawTally(document.getElementById('tallyX'), scores.X);
+    drawTally(document.getElementById('tallyO'), scores.O);
+    drawTally(document.getElementById('tallyD'), scores.D);
+  }
+
+  function drawTally(svg, n){
+    svg.innerHTML = '';
+    var groups = Math.ceil(n / 5) || 0;
+    var width = Math.max(60, groups * 26 - 6);
+    svg.setAttribute('viewBox', '0 0 ' + width + ' 24');
+    var x = 4, drawn = 0;
+    for (var g = 0; g < groups; g++){
+      var inGroup = Math.min(5, n - drawn);
+      for (var s = 0; s < inGroup; s++){
+        var sx = x + s*5 + rnd(-0.5,0.5);
+        addLine(svg, sx, 3+rnd(-1,1), sx+rnd(-1.5,1.5), 21+rnd(-1,1));
+      }
+      if (inGroup === 5){
+        addLine(svg, x-2, 18, x+22, 6); // the strike across the bundle of 4 (+5th)
+      }
+      drawn += inGroup;
+      x += 26;
+    }
+  }
+  function addLine(svg,x1,y1,x2,y2){
+    var l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1);
+    l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('stroke', 'var(--ink)');
+    l.setAttribute('stroke-width', '2');
+    l.setAttribute('stroke-linecap','round');
+    svg.appendChild(l);
+  }
+
+  // ----- controls -----
+  document.getElementById('newRound').addEventListener('click', function(){
+    board = Array(9).fill(null);
+    turn = 'X';
+    over = false;
+    cellButtons.forEach(function(c){
+      c.innerHTML = '';
+      c.disabled = false;
+      c.classList.remove('win');
+    });
+    winLineSvg.innerHTML = '';
+    statusEl.textContent = "X's turn — go ahead";
+  });
+
+  document.getElementById('resetMatch').addEventListener('click', function(){
+    scores = { X:0, O:0, D:0 };
+    renderTallies();
+    document.getElementById('newRound').click();
+  });
+
+  renderTallies();
+})();
+
+</script>
+</body>
+  </html>
