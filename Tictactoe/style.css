@@ -1,0 +1,194 @@
+/* ---- tokens ---- */
+:root{
+  --paper:#EEF2F6;
+  --rule:#41618f;
+  --ink:#1f2a44;
+  --margin:#d9665a;
+  --x-ink:#2255a4;
+  --o-ink:#c1432e;
+  --highlight: rgba(255,214,90,0.55);
+  --paper-card:#F7FAFD;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--paper);
+  font-family:'JetBrains Mono', monospace;
+  color:var(--ink);
+  display:flex;
+  justify-content:center;
+  padding:24px 12px 60px;
+}
+
+/* faint paper grain */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events:none;
+  mix-blend-mode:multiply;
+}
+
+.page{
+  position:relative;
+  width:100%;
+  max-width:420px;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 30px, rgba(65,97,143,0.12) 30px 31px),
+    var(--paper-card);
+  border-radius:4px;
+  box-shadow:0 18px 38px -18px rgba(31,42,68,0.35), 0 2px 0 rgba(31,42,68,0.06);
+  padding:34px 22px 30px 58px;
+  overflow:hidden;
+}
+
+.spiral{
+  position:absolute; left:16px; top:0; bottom:0; width:10px;
+  background-image: radial-gradient(circle, #c9d4e3 3px, transparent 3.6px);
+  background-size: 10px 34px;
+  background-repeat: repeat-y;
+  background-position: 0 14px;
+}
+.margin-line{
+  position:absolute; left:40px; top:0; bottom:0; width:2px;
+  background: var(--margin);
+  opacity:0.55;
+}
+
+header{ margin-bottom: 14px; }
+.eyebrow{
+  margin:0 0 2px;
+  font-size:11px;
+  letter-spacing:0.12em;
+  color:var(--margin);
+  font-weight:600;
+}
+h1{
+  font-family:'Caveat', cursive;
+  font-size:44px;
+  line-height:1;
+  margin:0 0 4px;
+  color:var(--ink);
+}
+h1 .crossout{
+  position:relative;
+  color:#8a94a8;
+}
+h1 .crossout::after{
+  content:"";
+  position:absolute; left:-2%; right:-2%; top:52%;
+  height:3px; background:var(--margin);
+  transform: rotate(-2deg);
+}
+.byline{
+  margin:0;
+  font-size:11.5px;
+  color:#5b6781;
+  font-style:italic;
+}
+
+.mode-row{
+  margin:16px 0 10px;
+  font-size:13px;
+}
+.mode-row label{ display:flex; align-items:center; gap:8px; cursor:pointer; }
+.mode-row input{ width:15px; height:15px; accent-color:var(--ink); cursor:pointer; }
+
+.status{
+  font-family:'Caveat', cursive;
+  font-size:22px;
+  color:var(--margin);
+  margin:6px 0 16px;
+  min-height:28px;
+  transform: rotate(-1deg);
+}
+
+.board-wrap{
+  position:relative;
+  width:100%;
+  max-width:300px;
+  aspect-ratio:1/1;
+  margin:0 auto 18px;
+}
+.grid-svg, .winline-svg{
+  position:absolute; inset:0; width:100%; height:100%;
+}
+.winline-svg{ pointer-events:none; }
+
+.cells{
+  position:absolute; inset:0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+}
+.cell{
+  background:transparent;
+  border:none;
+  padding:8%;
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cell:focus-visible{
+  outline:2px solid var(--margin);
+  outline-offset:-4px;
+  border-radius:6px;
+}
+.cell.win{
+  background:var(--highlight);
+  border-radius:6px;
+}
+.cell svg{ width:100%; height:100%; overflow:visible; }
+.cell:disabled{ cursor:default; }
+
+.score-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin:6px 0 20px;
+  padding-top:14px;
+  border-top:1px dashed #c4cee0;
+}
+.score{ flex:1; text-align:center; }
+.score-label{
+  display:block;
+  font-size:11px;
+  letter-spacing:0.08em;
+  color:#5b6781;
+  margin-bottom:4px;
+}
+.tally{ height:22px; width:100%; }
+
+.actions{ display:flex; gap:10px; margin-bottom:20px; }
+button.action{
+  flex:1;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12.5px;
+  padding:10px 8px;
+  background:var(--paper-card);
+  border:1.5px solid var(--ink);
+  border-radius:3px;
+  cursor:pointer;
+  color:var(--ink);
+  box-shadow:2px 2px 0 rgba(31,42,68,0.15);
+}
+button.action:active{ transform: translate(1px,1px); box-shadow:1px 1px 0 rgba(31,42,68,0.15); }
+@media (prefers-reduced-motion: no-preference){
+  button.action{ transition: transform .08s ease, box-shadow .08s ease; }
+}
+
+.footnote{
+  font-family:'Caveat', cursive;
+  font-size:15px;
+  color:#5b6781;
+  transform: rotate(-1deg);
+  margin:0;
+}
+
+@media (max-width: 380px){
+  .page{ padding:28px 16px 26px 42px; }
+  .spiral, .margin-line{ display:none; }
+    }
+  
