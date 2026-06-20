@@ -2,8 +2,6 @@
 
 A handwritten-notebook-styled Tic-Tac-Toe game built with  HTML, CSS, and JavaScript, no frameworks, no build step.
 
-![Tic-Tac-Toe](https://img.shields.io/badge/HTML-CSS-JS-orange)
-
 ## ✨ Features
 
 - 🎮 **Two-player mode** — play X vs O on the same device
