@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tic-Tac-Toe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <div class="spiral"></div>
+    <div class="margin-line"></div>
+
+    <header>
+      <h1>Tic-Tac-Toe Web App</h1>
+      <p class="byline">Prodigy InfoTech · Khushi</p>
+    </header>
+
+    <div class="mode-row">
+      <label>
+        <input type="checkbox" id="vsBot" />
+        play against the computer
+      </label>
+    </div>
+
+    <p class="status" id="status">X's turn — go ahead</p>
+
+    <div class="board-wrap">
+      <svg class="grid-svg" viewBox="0 0 300 300">
+        <path d="M 100 6 Q 106 150 97 294" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 102 8 Q 96 150 103 292" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 200 5 Q 193 150 207 296" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 198 7 Q 204 150 203 293" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 6 100 Q 150 107 295 96" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 8 103 Q 150 95 293 103" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <path d="M 5 200 Q 150 193 297 207" fill="none" stroke="#41618f" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 7 198 Q 150 205 294 203" fill="none" stroke="#41618f" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+      <div class="cells" id="cells"></div>
+      <svg class="winline-svg" id="winLine" viewBox="0 0 300 300"></svg>
+    </div>
+
+    <div class="score-row">
+      <div class="score">
+        <span class="score-label">X</span>
+        <svg class="tally" id="tallyX" viewBox="0 0 60 24"></svg>
+      </div>
+      <div class="score">
+        <span class="score-label">O</span>
+        <svg class="tally" id="tallyO" viewBox="0 0 60 24"></svg>
+      </div>
+      <div class="score">
+        <span class="score-label">draws</span>
+        <svg class="tally" id="tallyD" viewBox="0 0 60 24"></svg>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="action" id="newRound">new round</button>
+      <button class="action" id="resetMatch">reset match</button>
+    </div>
+
+  </main>
+
+<script src="script.js"></script>
+</body>
+  </html>
+  
